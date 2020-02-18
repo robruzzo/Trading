@@ -14,8 +14,14 @@ The object of this script is to perform the following tasks:
 4. Using any pickle list of stock tickers, download or update the data accordingly.
 
 5. Read a CSV with stock tickers and import them into a pickle file for use as above.
+
+Notes:
+
+Yahoo Finance acceptable time periods:
+valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
 """
 
+#imports
 
 import bs4 as bs
 import pickle
@@ -28,12 +34,7 @@ import pandas as pd
 from datetime import datetime
 from datetime import date
 
-
-
-'''
-Yahoo Finance acceptable time periods:
-valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
-'''
+#Global Variables
 period ="1y"
 daily_period="1d"
 delay=0.5
@@ -48,13 +49,23 @@ def save_sp_500_tickers():
         ticker = ticker[:-1]
         tickers.append(ticker)
     with open("sp500tickers.pickle","wb") as f:
-        pickle.dump(tickers,f)          #:5 is for testing First 5
+        pickle.dump(tickers,f)
 
     return tickers
 
-#TODO: UPDATE to accept any pickle file with tickers.
+'''
+TODO: UPDATE to accept any pickle file with tickers.
+	  
+	  Check to see if yahoo has 2 entries at the end
+	  of the day if you do an update other than 1d
+'''
 
-def update_ticker_prices_fromLast(ticker):
+'''
+Function to check all of the ticker csvs, get the last date and download data up to today
+It currently has a 3 month limit, otherwise it suggests using the get_data_from_yahoo function 
+to refresh the data. 
+'''
+def update_ticker_prices_fromLast():
     with open("sp500tickers.pickle","rb") as f:
             tickers=pickle.load(f)
     for ticker in tickers:
@@ -99,7 +110,15 @@ TODO: get_data_from_yahoo:
 2. allow for the period to be a variable input, but make the default 1 year
 3. put a refresh flag, this will delete the old files, re-download and rewrite
 4. add directory variable and file name for user input
+5. remove reload_sp500, put reload ticker lists in a separate function
 '''   
+
+'''
+Function Name: get_data_from_yahoo(arguments)
+Purpose:  This function will take as an input a pickle file
+		  which it will open, take in all of the ticker names
+		  and download the information using the Yahoo Finance API.
+'''
 def get_data_from_yahoo(reload_sp500):
     if reload_sp500:
         tickers= save_sp_500_tickers()
@@ -119,6 +138,14 @@ def get_data_from_yahoo(reload_sp500):
             time.sleep(delay)
         else:
             print('Already have {}'.format(ticker))
+
+'''
+Function Name: get_update_delta(ticker)
+Purpose: This function takes a ticker name string as an input and will open
+		 the appropriate csv file, and will return the time in days since last
+		 update as well as the date of the last update.
+Returns: int days, pandas datetime last_date yyyy-mm-dd
+'''
 
 def get_update_date_delta(ticker):
     if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
