@@ -33,112 +33,125 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime
 from datetime import date
+import glob as g
 
 #Global Variables
-period ="1y"
-daily_period="1d"
-delay=0.5
-
-def save_sp_500_tickers():
-    resp=requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    soup =bs.BeautifulSoup(resp.text, 'lxml')
-    table = soup.find('table',{'class': 'wikitable sortable'})
-    tickers=[]
-    for row in table.findAll('tr')[1:]:
-        ticker = row.findAll('td')[0].text.replace('.','-')
-        ticker = ticker[:-1]
-        tickers.append(ticker)
-    with open("sp500tickers.pickle","wb") as f:
-        pickle.dump(tickers,f)
-
-    return tickers
+period ="1y" #Default Initial Yahoo Finance Download Period
+delay=0.5	 #Default Delay between downloads in seconds
+data_directory='E:/Datasets/Stocks/' #Include the trailing '/'
+fileName ="sp500tickers.pickle" #Default File Name For updating
+ticker_sub_directory ='sp500'
 
 '''
-TODO: UPDATE to accept any pickle file with tickers.
-	  
-	  Check to see if yahoo has 2 entries at the end
-	  of the day if you do an update other than 1d
+Function Name: save_sp_500_tickers(data_directory)
+Function Purpose: To get the current list of S&P500 ticker Symbols from wikipedia
+				  and save them to a file tickers.pickle. 
+Output: sp500tickers.pickle
 '''
+def save_sp_500_tickers(data_directory=data_directory):
+	resp=requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+	soup=bs.BeautifulSoup(resp.text, 'lxml')
+	table=soup.find('table',{'class': 'wikitable sortable'})
+	tickers=[]
+	for row in table.findAll('tr')[1:]:
+		ticker = row.findAll('td')[0].text.replace('.','-')
+		ticker = ticker[:-1]
+		tickers.append(ticker)
+	if os.path.exists(data_directory+'sp500tickers.pickle'):
+		os.remove(data_directory+'sp500tickers.pickle')
+	with open(data_directory + "sp500tickers.pickle","wb") as f:
+		pickle.dump(tickers,f)
+
+
 
 '''
-Function to check all of the ticker csvs, get the last date and download data up to today
-It currently has a 3 month limit, otherwise it suggests using the get_data_from_yahoo function 
-to refresh the data. 
+Function Name: update_ticker_prices_fromLast(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName)
+Function Purpose: When given a pickle file with a list of ticker names, if a csv file exists in the ticker subdirectory,
+				  then the function will check the last date in the file, download the data in a valid increment,
+				  and update the file.
 '''
-def update_ticker_prices_fromLast():
-    with open("sp500tickers.pickle","rb") as f:
-            tickers=pickle.load(f)
-    for ticker in tickers:
-        print("Updating Ticker: {}".format(ticker))
-        if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
-            print("Ticker File Not Found, Run get_data_from_yahoo()")
-        else:
-            delta, last_date=get_update_date_delta('{}'.format(ticker))
-            if delta==0:
-                print("No Update Needed... Exiting")
-                exit()
-            if delta==1:
-                update_period = "1d"
-            if delta > 1 and delta < 32:
-                update_period ="1mo"
-            if delta > 31 and delta < 94:
-                update_period ="3mo"
-            if delta > 93: 
-                print("It has been more than 3 Months since update, it would be more efficient to get new data. \nUse get_data_from_yahoo") 
-                print("\nDays Since Last Update: {}  ".format(delta)) 
-                exit()
-            prior_data=pd.read_csv('stock_dfs/{}.csv'.format(ticker))
-            print(prior_data.tail(delta))
-            with open('stock_dfs/{}.csv'.format(ticker),"ab") as f:
-                tick=yf.Ticker(ticker)
-                df=tick.history(update_period)
-                df.reset_index(inplace=True)
-                #Depedent on Update Time, Get aftermarket volume info
-                if update_period =="1d":
-                    df.drop(df.index[1], inplace=True)
-                else:
-                    row=df.loc[df["Date"] == str(last_date.astype(str).tolist()[0])]
-                    index = row.index[0]+1
-                    df=df[index:]   
-                f.write(df.to_csv(header=False,index=False))
-                time.sleep(delay)
-    
-'''
-TODO: get_data_from_yahoo:
-
-1. allow for any ticker list to be used that is a pickle
-2. allow for the period to be a variable input, but make the default 1 year
-3. put a refresh flag, this will delete the old files, re-download and rewrite
-4. add directory variable and file name for user input
-5. remove reload_sp500, put reload ticker lists in a separate function
-'''   
+def update_ticker_prices_fromLast(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName):
+	with open(data_directory + fileName,"rb") as f:
+			tickers=pickle.load(f)
+	for ticker in tickers:
+		print("Updating Ticker: {}".format(ticker))
+		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
+			print("Ticker File Not Found, Check directory, ticker name, or run get_data_from_yahoo()")
+		else:
+			delta, last_date=get_update_date_delta('{}'.format(ticker))
+			if delta==0:
+				print("No Update Needed for {}".format(ticker))
+				continue
+			if delta==1:
+				update_period = "1d"
+			if delta > 1 and delta < 32:
+				update_period ="1mo"
+			if delta > 31 and delta < 94:
+				update_period ="3mo"
+			if delta > 93: 
+				print("It has been more than 3 Months since update, it would be more efficient to get new data. \nUse get_data_from_yahoo") 
+				print("\nDays Since Last Update: {}  ".format(delta)) 
+				continue
+			prior_data=pd.read_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			with open(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker),"ab") as f:
+				tick=yf.Ticker(ticker)
+				df=tick.history(update_period)
+				df.reset_index(inplace=True)
+				#Depedent on Update Time, Get aftermarket volume info
+				if update_period =="1d":
+					df.drop(df.index[1], inplace=True)
+				else:
+					row=df.loc[df["Date"] == str(last_date.astype(str).tolist()[0])]
+					index = row.index[0]+1
+					df=df[index:]   
+				f.write(df.to_csv(header=False,index=False))
+				time.sleep(delay)
+	
 
 '''
-Function Name: get_data_from_yahoo(arguments)
+Function Name: get_data_from_yahoo(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,period=period, refresh=False)
 Purpose:  This function will take as an input a pickle file
 		  which it will open, take in all of the ticker names
 		  and download the information using the Yahoo Finance API.
+Arguments:	data_directory: Data parent directory - this is where the pickle files should be stored
+			ticker_sub_directory: String, data sub directory, this is where a csv for each of the tickers history will be stored
+			fileName: String, file name of the pickle file that resides in the data_directory to read tickers from. The
+					  default is sp500tickers.pickle, other pickle files in the same format can be used.
+			period: This is the length of the history that you wish to download.
+					The following values are allowed for the Yahoo Finance API: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
+					The default period is set to 1y or 1 year. The input is a string.
+			refresh: Bool, if set to True, it will delete the file for each ticker, and re-download the data for the desired period.
+			purge:   Bool, if set to True, ALL data files in the directory will be deleted, and then the data will be downloaded. This
+					 function serves to delete old data that is in the directory that is no longer in use. IE after a watch list has changed.
 '''
-def get_data_from_yahoo(reload_sp500):
-    if reload_sp500:
-        tickers= save_sp_500_tickers()
-    else:
-        with open("sp500tickers.pickle","rb") as f:
-            tickers=pickle.load(f)
-    
-    if not os.path.exists('stock_dfs'):
-        os.makedirs('stock_dfs')
-        
-    for ticker in tickers:
-        print("Getting Ticker: {}".format(ticker))
-        if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
-            tick=yf.Ticker(ticker)
-            df=tick.history(period)
-            df.to_csv('stock_dfs/{}.csv'.format(ticker))
-            time.sleep(delay)
-        else:
-            print('Already have {}'.format(ticker))
-
+def get_data_from_yahoo(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,period=period, refresh=False, purge=False):
+	if not os.path.exists(data_directory+fileName):
+		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
+		exit()
+	with open(data_directory + fileName,"rb") as f:
+		tickers=pickle.load(f)
+	if purge:
+		files=g.glob(data_directory+ticker_sub_directory+'/*')
+		print("Purging all files for a fresh clean start")
+		for f in files:
+			os.remove(f)
+	if not os.path.exists(data_directory+ticker_sub_directory):
+		os.makedirs(data_directory+ticker_sub_directory)
+	for ticker in tickers:
+		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
+			print("Getting Ticker: {}".format(ticker))
+			tick=yf.Ticker(ticker)
+			df=tick.history(period)
+			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			time.sleep(delay)
+			continue
+		if os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)) and refresh:
+			print("Refreshing data for {}".format(ticker))
+			os.remove(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			tick=yf.Ticker(ticker)
+			df=tick.history(period)
+			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			time.sleep(delay)
 '''
 Function Name: get_update_delta(ticker)
 Purpose: This function takes a ticker name string as an input and will open
@@ -148,14 +161,61 @@ Returns: int days, pandas datetime last_date yyyy-mm-dd
 '''
 
 def get_update_date_delta(ticker):
-    if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
-            print("Ticker File Not Found, Run get_data_from_yahoo()")
-    else:   
-            today=datetime.now()
-            df=pd.read_csv('stock_dfs/{}.csv'.format(ticker))
-            df["Date"]=pd.to_datetime(df["Date"])
-            last_date=df.tail(1)["Date"]
-            difference = today - last_date
-            return int(difference.astype('timedelta64[D]')), last_date
+	if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
+			print("Ticker File Not Found, Run get_data_from_yahoo()")
+	else:   
+			today=datetime.now()
+			df=pd.read_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			df["Date"]=pd.to_datetime(df["Date"])
+			last_date=df.tail(1)["Date"]
+			difference = today - last_date
+			return int(difference.astype('timedelta64[D]')), last_date
 
-#TODO: Create a file to create or update a pickle file from a CSV list of tickers
+
+'''
+Function Name: convert_tickers_csv_to_pickle(csv_file)
+Purpose: This function takes a csv file of one column with ticker names and creates a pickle
+		 file with the same name.
+'''
+def convert_tickers_csv_to_pickle(csv_file):
+	df=pd.read_csv(data_directory+csv_file)
+	pickle_name=csv_file[:-4]+".pickle"
+	tickers=df['Ticker']
+	with open(data_directory + pickle_name,"wb") as f:
+		pickle.dump(tickers,f)
+
+'''
+Function Name: add_ticker_to_pickle(pickleFile,tickerName)
+Purpose: This function allows you to add a ticker to a pickle file. Ex myWatchList.
+Note: This does not update the data, you should run get_data_from_yahoo() to do so
+'''
+
+def add_ticker_to_pickle(pickleFile,tickerName):
+	if os.path.exists(data_directory+pickleFile):
+		with open(data_directory + pickleFile,"rb") as f:
+			tickers=pickle.load(f) 
+		tickers[len(tickers)]=tickerName
+		os.remove(data_directory+pickleFile)
+		with open(data_directory + pickleFile,"wb") as f:
+			pickle.dump(tickers,f)
+		print("{} ".format(tickerName)+ "Added to {}".format(pickleFile))
+
+'''
+Function Name: remove_ticker_from_pickle(pickleFile, tickerName)
+Purpose: This function is used to remove a ticker from a pickle file.
+Note: This does not update the data, only the pickle, you should run
+	  get_data_from_yahoo() to do so. If you dont use the purge option while
+	  doing so, the old data will remain for tickers that no longer exist.
+'''
+
+def remove_ticker_from_pickle(pickleFile, tickerName):
+	if os.path.exists(data_directory+pickleFile):
+		with open(data_directory + pickleFile,"rb") as f:
+			tickers=pickle.load(f)
+		for i in range (0,len(tickers)):
+			if tickers[i]==tickerName:
+				print("Removing ticker: {}".format(tickers[i]))
+				tickers.drop(labels=i,inplace=True)
+		os.remove(data_directory+pickleFile)
+		with open(data_directory + pickleFile,"wb") as f:
+			pickle.dump(tickers,f)
