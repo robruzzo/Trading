@@ -19,6 +19,8 @@ Notes:
 
 Yahoo Finance acceptable time periods:
 valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
+Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
+                Intraday data cannot extend last 60 days
 """
 
 #imports
@@ -39,8 +41,12 @@ import glob as g
 period ="1y" #Default Initial Yahoo Finance Download Period
 delay=0.5	 #Default Delay between downloads in seconds
 data_directory='E:/Datasets/Stocks/' #Include the trailing '/'
-fileName ="sp500tickers.pickle" #Default File Name For updating
-ticker_sub_directory ='sp500'
+fileName ="MyWatchList.pickle" #Default File Name For updating
+ticker_sub_directory ='test'
+start_date='2005-01-01'
+end_date='2020-01-01'
+interval='1d'
+
 
 '''
 Function Name: save_sp_500_tickers(data_directory)
@@ -124,7 +130,7 @@ Arguments:	data_directory: Data parent directory - this is where the pickle file
 			purge:   Bool, if set to True, ALL data files in the directory will be deleted, and then the data will be downloaded. This
 					 function serves to delete old data that is in the directory that is no longer in use. IE after a watch list has changed.
 '''
-def get_data_from_yahoo(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,period=period, refresh=False, purge=False):
+def get_data_from_yahoo(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,period=period,refresh=False, purge=False):
 	if not os.path.exists(data_directory+fileName):
 		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
 		exit()
@@ -141,7 +147,54 @@ def get_data_from_yahoo(data_directory=data_directory,ticker_sub_directory=ticke
 		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
 			print("Getting Ticker: {}".format(ticker))
 			tick=yf.Ticker(ticker)
+			df=tick.history(period=period)
+			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			time.sleep(delay)
+			continue
+		if os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)) and refresh:
+			print("Refreshing data for {}".format(ticker))
+			os.remove(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			tick=yf.Ticker(ticker)
 			df=tick.history(period)
+			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
+			time.sleep(delay)
+
+'''
+Function Name: get_data_from_yahoo_specific(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,period=period, refresh=False)
+Purpose:  This function will take as an input a pickle file
+		  which it will open, take in all of the ticker names
+		  and download the information using the Yahoo Finance API.
+Arguments:	data_directory: Data parent directory - this is where the pickle files should be stored
+			ticker_sub_directory: String, data sub directory, this is where a csv for each of the tickers history will be stored
+			fileName: String, file name of the pickle file that resides in the data_directory to read tickers from. The
+					  default is sp500tickers.pickle, other pickle files in the same format can be used.
+			start:    A string in the format yyyy-mm-dd representing the desired start date
+			end:	  A string in the format yyyy-mm-dd representing the desired end date
+			interval: A string representing the interval period for each data point. 
+					  Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
+                      Intraday data cannot extend last 60 days
+			refresh:  Bool, if set to True, it will delete the file for each ticker, and re-download the data for the desired period.
+			purge:    Bool, if set to True, ALL data files in the directory will be deleted, and then the data will be downloaded. This
+					  function serves to delete old data that is in the directory that is no longer in use. IE after a watch list has changed.
+'''
+def get_data_from_yahoo_specific(data_directory=data_directory,ticker_sub_directory=ticker_sub_directory,fileName=fileName,start=start_date,end=end_date,interval=interval, refresh=False, purge=False):
+	if not os.path.exists(data_directory+fileName):
+		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
+		exit()
+	with open(data_directory + fileName,"rb") as f:
+		tickers=pickle.load(f)
+	if purge:
+		files=g.glob(data_directory+ticker_sub_directory+'/*')
+		print("Purging all files for a fresh clean start")
+		for f in files:
+			os.remove(f)
+	if not os.path.exists(data_directory+ticker_sub_directory):
+		os.makedirs(data_directory+ticker_sub_directory)
+	for ticker in tickers:
+		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
+			print("Getting Ticker: {}".format(ticker))
+			tick=yf.Ticker(ticker)
+			df=tick.history(start=start_date,end=end_date,interval=interval)
 			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
 			time.sleep(delay)
 			continue
