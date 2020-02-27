@@ -29,12 +29,10 @@ import bs4 as bs
 import pickle
 import requests
 import os
-import numpy as np
 import time
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
-from datetime import date
 import glob as g
 
 #Global Variables
@@ -98,7 +96,6 @@ def update_ticker_prices_fromLast(data_directory=data_directory,ticker_sub_direc
 				print("It has been more than 3 Months since update, it would be more efficient to get new data. \nUse get_data_from_yahoo") 
 				print("\nDays Since Last Update: {}  ".format(delta)) 
 				continue
-			prior_data=pd.read_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
 			with open(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker),"ab") as f:
 				tick=yf.Ticker(ticker)
 				df=tick.history(update_period)
