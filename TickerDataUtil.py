@@ -39,10 +39,10 @@ import glob as g
 period ="1y" #Default Initial Yahoo Finance Download Period
 delay=0.5	 #Default Delay between downloads in seconds
 data_directory='E:/Datasets/Stocks/' #Include the trailing '/'
-fileName ="MyWatchList.pickle" #Default File Name For updating
-ticker_sub_directory ='test'
-start_date='2005-01-01'
-end_date='2020-01-01'
+fileName ="sp500tickers.pickle" #Default File Name For updating
+ticker_sub_directory ='SP500'
+start_date='2010-01-01'
+end_date='2017-01-01'
 interval='1d'
 
 
@@ -96,7 +96,7 @@ def update_ticker_prices_fromLast(data_directory=data_directory,ticker_sub_direc
 				print("It has been more than 3 Months since update, it would be more efficient to get new data. \nUse get_data_from_yahoo") 
 				print("\nDays Since Last Update: {}  ".format(delta)) 
 				continue
-			with open(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker),"ab") as f:
+			with open(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker),"a",newline='') as f:
 				tick=yf.Ticker(ticker)
 				df=tick.history(update_period)
 				df.reset_index(inplace=True)
