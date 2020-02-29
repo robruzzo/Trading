@@ -188,7 +188,7 @@ def get_data_from_yahoo_specific(data_directory,ticker_sub_directory,fileName,st
 		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
 			print("Getting Ticker: {}".format(ticker))
 			tick=yf.Ticker(ticker)
-			df=tick.history(start,end,interval)
+			df=tick.history(start=start,end=end,interval=interval)
 			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
 			time.sleep(delay)
 			continue
@@ -196,7 +196,7 @@ def get_data_from_yahoo_specific(data_directory,ticker_sub_directory,fileName,st
 			print("Refreshing data for {}".format(ticker))
 			os.remove(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
 			tick=yf.Ticker(ticker)
-			df=tick.history(start,end,interval)
+			df=tick.history(start=start,end=end,interval=interval)
 			df.to_csv(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker))
 			time.sleep(delay)
 '''
