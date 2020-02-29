@@ -34,7 +34,7 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime
 import glob as g
-
+import sys
 
 '''
 Function Name: save_sp_500_tickers(data_directory)
@@ -126,7 +126,7 @@ Arguments:	data_directory: Data parent directory - this is where the pickle file
 def get_data_from_yahoo(data_directory,ticker_sub_directory,fileName,period,refresh,purge,delay):
 	if not os.path.exists(data_directory+fileName):
 		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
-		exit()
+		sys.exit()
 	with open(data_directory + fileName,"rb") as f:
 		tickers=pickle.load(f)
 	if purge:
@@ -174,7 +174,7 @@ Arguments:	data_directory: Data parent directory - this is where the pickle file
 def get_data_from_yahoo_specific(data_directory,ticker_sub_directory,fileName,start,end,period,interval, refresh, purge, delay):
 	if not os.path.exists(data_directory+fileName):
 		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
-		exit()
+		sys.exit()
 	with open(data_directory + fileName,"rb") as f:
 		tickers=pickle.load(f)
 	if purge:
@@ -279,3 +279,20 @@ def remove_ticker_from_pickle(data_directory,pickleFile, tickerName):
 		os.remove(data_directory+pickleFile)
 		with open(data_directory + pickleFile,"wb") as f:
 			pickle.dump(tickers,f)
+
+
+
+'''
+Function Name: convert_tickers_df_to_pickle(data_directory,output_file,ticker_df)
+Purpose: This function takes a pandas dataframe list of tickers with the column header Ticker and creates a pickle file
+Arguments:  data_directory: String, Data parent directory - this is where the pickle files should be stored
+            output_file: String, name of the output file, .pickle will be added, dont include
+            ticker_df: a pandas dataframe that contains a list of tickers, with a Column name of Ticker          
+Output: A pickle file containing the tickers
+Example:  df = pd.DataFrame(data=['AAPL','IBM','OLED'], columns=['Ticker']) 
+          convert_tickers_df_to_pickle('E:/Datasets/Stocks/','mythree',df)
+'''
+def convert_tickers_df_to_pickle(data_directory,output_file,ticker_df):
+	pickle_name=output_file+".pickle"
+	with open(data_directory + pickle_name,"wb") as f:
+		pickle.dump(ticker_df['Ticker'],f)
