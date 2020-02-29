@@ -171,7 +171,7 @@ Arguments:	data_directory: Data parent directory - this is where the pickle file
 					  function serves to delete old data that is in the directory that is no longer in use. IE after a watch list has changed.
             delay:   float - The delay time in seconds between ticker info downloads, 0.5 works well, not to anger the yahoo server
 '''
-def get_data_from_yahoo_specific(data_directory,ticker_sub_directory,fileName,start,end,period,interval, refresh, purge, delay):
+def get_data_from_yahoo_specific(data_directory,ticker_sub_directory,fileName,start,end,interval, refresh, purge, delay):
 	if not os.path.exists(data_directory+fileName):
 		print(data_directory+fileName+" Not Found! Check Path and File Name! Exiting!")
 		sys.exit()
