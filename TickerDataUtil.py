@@ -293,6 +293,6 @@ Example:  df = pd.DataFrame(data=['AAPL','IBM','OLED'], columns=['Ticker'])
           convert_tickers_df_to_pickle('E:/Datasets/Stocks/','mythree',df)
 '''
 def convert_tickers_df_to_pickle(data_directory,output_file,ticker_df):
-	pickle_name=output_file+".pickle"
+	pickle_name=output_file
 	with open(data_directory + pickle_name,"wb") as f:
 		pickle.dump(ticker_df['Ticker'],f)
