@@ -62,9 +62,9 @@ def create_report(report_root,report_data):
         for x in range(len(report_data)):
             row=str("<tr>\n\t<th>"+report_data['ticker'][x]+"</th>\n\t<th>"+report_data['weight'][x]+"</th>"+   
             "\n\t<th>"+report_data['avg_ret'][x]+"</th>\n\t<th>"+report_data['alpha'][x]+"</th>"+
-            "\n\t<th>"+report_data['beta'][x]+"</th>\n\t<th>"+report_data['exp_ret'][x]+"</th>"+"\n\t<th>"+report_data['weightB'][x]+"</th>\n</tr>")
+            "\n\t<th>"+report_data['beta'][x]+"</th>\n\t<th>"+report_data['exp_ret'][x]+"</th>"+"\n\t<th>"+report_data['weightB'][x]+"</th>\n</tr>\n")
             f.write(row)
-        sumRow=str("<tr>\n\t<th>Sharpe:</th>\n\t<th>"+report_data['sharpe'][x]+"</th>\n\t<th></th>\n\t<th></th>\n\t<th></th>\n\t<th>Portfolio Beta:</th>\n\t<th>"+report_data['SumPB'][x]+"\n</th>")
+        sumRow=str("<tr>\n\t<th>Sharpe:</th>\n\t<th>"+report_data['sharpe'][x]+"</th>\n\t<th></th>\n\t<th></th>\n\t<th></th>\n\t<th>Portfolio Beta:</th>\n\t<th>"+report_data['SumPB'][x]+"</th>\n</tr>\n")
         f.write(sumRow)
         f.write(end_html)
         f.close()
