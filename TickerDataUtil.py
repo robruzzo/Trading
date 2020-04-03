@@ -77,7 +77,7 @@ def update_ticker_prices_fromLast(data_directory,ticker_sub_directory,fileName,d
 		if not os.path.exists(data_directory+ticker_sub_directory+'/{}.csv'.format(ticker)):
 			print("Ticker File Not Found, Check directory, ticker name, or run get_data_from_yahoo()")
 		else:
-			delta, last_date=get_update_date_delta('{}'.format(ticker))
+			delta, last_date=get_update_date_delta(data_directory,ticker_sub_directory,'{}'.format(ticker))
 			if delta==0:
 				print("No Update Needed for {}".format(ticker))
 				continue
@@ -293,6 +293,6 @@ Example:  df = pd.DataFrame(data=['AAPL','IBM','OLED'], columns=['Ticker'])
           convert_tickers_df_to_pickle('E:/Datasets/Stocks/','mythree',df)
 '''
 def convert_tickers_df_to_pickle(data_directory,output_file,ticker_df):
-	pickle_name=output_file
+	pickle_name=output_file+".pickle"
 	with open(data_directory + pickle_name,"wb") as f:
 		pickle.dump(ticker_df['Ticker'],f)
