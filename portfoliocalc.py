@@ -7,8 +7,7 @@ import os as os
 
 
 def get_tickers(data_directory,fileName):
-    with open(data_directory + fileName,"rb") as f:
-            tickers=pickle.load(f)
+    tickers=pd.read_csv(data_directory + fileName, usecols=["Ticker"], index_col=None)
     return tickers
 
 def show_data(data,report_data_dir):
@@ -20,9 +19,9 @@ def show_data(data,report_data_dir):
     plt.clf()
 
 def load_data(data_directory,ticker_sub_directory,tickers, data):
-    for ticker in tickers:
+    for ticker in tickers["Ticker"]:
         ticker_data = pd.read_csv(data_directory+ticker_sub_directory+ticker+'.csv',parse_dates=True)
-        ticker_data['Date']=pd.to_datetime(ticker_data['Date'])
+        ticker_data['Date']=pd.to_datetime(ticker_data['Date Time'])
         ticker_data['Date']=ticker_data['Date'].dt.strftime('%m/%d/%Y')
         ticker_data.set_index(['Date'],inplace=True)
         ticker_data=ticker_data[['Close']]

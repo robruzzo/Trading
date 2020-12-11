@@ -9,7 +9,7 @@ import pandas as pd
 import report as rpt
 
 
-#Allow for csv or pickle
+#Change All To CSV
 
 portfolio_directory='E:/Portfolios/' #Include the trailing '/'
 portfolio_name='mythree/'
@@ -26,9 +26,9 @@ portfolio_output=portfolio_root+output_directory
 report_directory=portfolio_root+report_root
 report_data_root=report_directory+report_data_directory
 
-ticker_file='mythree.pickle'
-output_file='mythree_portfolio.pickle'
-reference_file='index.pickle'
+ticker_file='mythree.csv'
+output_file='mythree_portfolio.csv'
+reference_file='index.csv'
 
 
 data=pd.DataFrame(index=['Date'])
@@ -74,12 +74,12 @@ if not os.path.exists(report_data_root):
 
 #Portfolio Tickers
 df = pd.DataFrame(data=['AAPL','IBM','OLED'], columns=['Ticker']) 
-td.convert_tickers_df_to_pickle(portfolio_data,ticker_file,df)
+td.convert_tickers_df_to_csv(portfolio_data,ticker_file,df)
 td.get_data_from_yahoo_specific(portfolio_data,ticker_sub_directory,ticker_file,start_date,
                                 end_date,interval,False,False,0.5)
 #Reference Tickers
 df = pd.DataFrame(data=[reference_ticker], columns=['Ticker']) 
-td.convert_tickers_df_to_pickle(portfolio_data,reference_file,df)
+td.convert_tickers_df_to_csv(portfolio_data,reference_file,df)
 td.get_data_from_yahoo_specific(portfolio_data,ticker_sub_directory,reference_file,start_date,
                                 end_date,interval,False,False,0.5)
 
