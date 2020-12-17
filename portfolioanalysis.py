@@ -73,7 +73,7 @@ if not os.path.exists(report_data_root):
 # Data Section
 
 #Portfolio Tickers
-df = pd.DataFrame(data=['AAPL','IBM','OLED'], columns=['Ticker']) 
+df = pd.DataFrame(data=['AAPL','IBM','OLED',"AMD","PFE","INO"], columns=['Ticker']) 
 td.convert_tickers_df_to_csv(portfolio_data,ticker_file,df)
 td.get_data_from_yahoo_specific(portfolio_data,ticker_sub_directory,ticker_file,start_date,
                                 end_date,interval,False,False,0.5)

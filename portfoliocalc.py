@@ -32,7 +32,7 @@ def load_data(data_directory,ticker_sub_directory,tickers, data):
 
 def load_ticker_data(data_directory,ticker_sub_directory,ticker):
     ticker_data = pd.read_csv(data_directory+ticker_sub_directory+ticker+'.csv',parse_dates=True)
-    ticker_data['Date']=pd.to_datetime(ticker_data['Date'])
+    ticker_data['Date']=pd.to_datetime(ticker_data['Date Time'])
     ticker_data['Date']=ticker_data['Date'].dt.strftime('%m/%d/%Y')
     ticker_data.set_index(['Date'],inplace=True)
     '''
@@ -136,6 +136,8 @@ def print_optimial_portfolio(optimum, returns):
     print("Optimal Weights: ", optimum['x'].round(3))
     print("Expected Return:, volatility and Sharpe Ratio:", statistics(optimum['x'].round(3),returns))
 '''
+CONVERT TO CSV
+
 def save_optimial_portfolio(optimum, returns):
     print("Optimal Weights: ", optimum['x'].round(3))
     print("Expected Return:, volatility and Sharpe Ratio:", statistics(optimum['x'].round(3),returns))
@@ -148,7 +150,7 @@ def save_optimial_portfolio_pickle(output_directory,output_portfolio_name,optimu
     x=0
     port=[]
     print("Saving Optimum Portfolio")
-    for ticker in tickers:
+    for ticker in tickers["Ticker"]:
         if optimum['x'][x].round(3) > 0.0:
             print("Ticker: ",ticker, "\tWeight: ",optimum['x'][x].round(3))
             port.append([ticker,optimum['x'][x].round(3)])
